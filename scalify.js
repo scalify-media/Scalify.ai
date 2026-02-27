@@ -471,6 +471,15 @@ function updateIndustryPreview() {
   }
 }
 
+// Auto-select a random style
+setTimeout(function() {
+  var styleCards = document.querySelectorAll('[data-style]');
+  if (styleCards.length > 0) {
+    var randomIndex = Math.floor(Math.random() * styleCards.length);
+    styleCards[randomIndex].click();
+  }
+}, 200);
+
 // Restore industry on page load for logged-in users only
 function restoreIndustrySelection() {
   if (!window.$memberstackDom) return;
@@ -515,35 +524,6 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', restoreIndustrySelection);
 } else {
   restoreIndustrySelection();
-}
-function updateStylePreview() {
-  var style = window.siteConfig.style;
-  if (!style) return;
-  var fonts = {
-    'font-modern': "Inter, sans-serif",
-    'font-classic': "Playfair Display, serif",
-    'font-friendly': "Nunito, sans-serif",
-    'font-bold': "Poppins, sans-serif",
-    'font-playful': "Quicksand, sans-serif"
-  };
-  var fontFamily = fonts[style.fontClass];
-  if (!fontFamily) return;
-  var headline = document.getElementById('preview-headline');
-  var description = document.getElementById('preview-description');
-  var cta = document.getElementById('preview-cta');
-  var navCta = document.getElementById('preview-nav-cta');
-  var image = document.getElementById('preview-image');
-  if (headline) headline.style.setProperty('font-family', fontFamily, 'important');
-  if (description) description.style.setProperty('font-family', fontFamily, 'important');
-  if (cta) {
-    cta.style.setProperty('font-family', fontFamily, 'important');
-    if (style.buttonRadius) cta.style.setProperty('border-radius', style.buttonRadius, 'important');
-  }
-  if (navCta) {
-    navCta.style.setProperty('font-family', fontFamily, 'important');
-    if (style.buttonRadius) navCta.style.setProperty('border-radius', style.buttonRadius, 'important');
-  }
-  if (image && style.radius) image.style.setProperty('border-radius', style.radius, 'important');
 }
 
 function updateColorPreview() {
@@ -635,6 +615,14 @@ function loadOldSiteScreenshot() {
     var scannedUrl = window.scannedUrl || localStorage.getItem('scalify_scannedUrl') || '';
     if (scannedUrl === 'skipped') scannedUrl = 'No existing website';
 
+    var chosenTemplate = '';
+    if (window.siteConfig && window.siteConfig.industry && window.siteConfig.industry.template5k) {
+      chosenTemplate = window.siteConfig.industry.template5k;
+    }
+    if (!chosenTemplate && window.cart && window.cart.image) {
+      chosenTemplate = window.cart.image;
+    }
+
     return {
       email: email,
       name: name,
@@ -645,6 +633,8 @@ function loadOldSiteScreenshot() {
       tier: tier,
       price: price,
       old_site_url: scannedUrl,
+      template_url: chosenTemplate,
+      style: window.selectedStyle || '',
       signup_date: new Date().toISOString()
     };
   }
@@ -657,7 +647,7 @@ function loadOldSiteScreenshot() {
     sendToZapier(gatherUserData());
   };
 
-   window.sendToZapierDirect = function(email, name, phone, company) {
+  window.sendToZapierDirect = function(email, name, phone, company) {
     var data = gatherUserData();
     data.email = email || data.email;
     data.name = name || data.name;
@@ -689,7 +679,7 @@ function loadOldSiteScreenshot() {
   }
 
   document.addEventListener('memberstack:authenticated', function() {
-    if (window._zapierSentDirect) return; 
+    if (window._zapierSentDirect) return;
     setTimeout(handleMemberstackData, 2000);
   });
 
@@ -713,36 +703,36 @@ function loadOldSiteScreenshot() {
 })();
 
 // ==================== MEMBERSTACK AUTH HANDLER ====================
-(function() { 
+(function() {
   window.isLoggedInUser = false;
-  
+
   var checkMemberstack = setInterval(function() {
     if (window.$memberstackDom) {
       clearInterval(checkMemberstack);
       initMemberstackAuth();
     }
   }, 100);
-  
+
   function initMemberstackAuth() {
     var loadingScreen = document.getElementById('auth-loading');
-    
+
     window.$memberstackDom.getCurrentMember().then(function(result) {
       var member = result.data;
       if (member) {
         console.log('User already logged in:', member);
         window.isLoggedInUser = true;
-        
+
         var panel1 = document.getElementById('panel-1');
         if (panel1) panel1.style.display = 'none';
         var mockup = document.querySelector('.website-mockup');
         if (mockup) mockup.style.display = 'none';
-        
+
         if (loadingScreen) loadingScreen.style.display = 'flex';
-        
+
         showLoggedInState(member);
         loadSavedSite(member);
         forceToPanel9();
-        
+
         setTimeout(function() {
           if (loadingScreen) {
             loadingScreen.classList.add('hidden');
@@ -751,14 +741,14 @@ function loadOldSiteScreenshot() {
             }, 500);
           }
         }, 1500);
-        
+
       } else {
         console.log('New user - showing start screen');
       }
     }).catch(function(error) {
       console.log('Auth error - showing start screen');
     });
-    
+
     setTimeout(function() {
       var signupForm = document.querySelector('[data-ms-form="signup"]');
       if (signupForm) {
@@ -766,12 +756,12 @@ function loadOldSiteScreenshot() {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
-          
+
           var emailInput = signupForm.querySelector('input[type="email"], input[data-ms-member="email"]');
           var passwordInput = signupForm.querySelector('input[type="password"], input[data-ms-member="password"]');
           var nameInput = signupForm.querySelector('input[data-ms-member\\:custom-fields="name"]');
           var companyInput = signupForm.querySelector('input[data-ms-member\\:custom-fields="company-name"]');
-          
+
           if (!nameInput || !companyInput) {
             signupForm.querySelectorAll('input[type="text"]').forEach(function(input) {
               var placeholder = (input.placeholder || '').toLowerCase();
@@ -783,50 +773,49 @@ function loadOldSiteScreenshot() {
               }
             });
           }
-          
+
           var email = emailInput ? emailInput.value : '';
           var password = passwordInput ? passwordInput.value : '';
           var name = nameInput ? nameInput.value : '';
           var company = companyInput ? companyInput.value : '';
           var phone = document.getElementById('Phone') ? document.getElementById('Phone').value : '';
-          
+
           console.log('Signup data:', { email: email, name: name, company: company });
-          
+
           if (!email || !password) {
             alert('Please enter email and password');
             return false;
           }
-          
+
           var submitBtn = signupForm.querySelector('button[type="submit"]');
           var originalText = submitBtn ? submitBtn.textContent : '';
           if (submitBtn) {
             submitBtn.textContent = 'CREATING...';
             submitBtn.disabled = true;
           }
-          
+
           window.$memberstackDom.signupMemberEmailPassword({
             email: email,
             password: password,
-            customFields: { 
-  'name': name, 
-  'company-name': company, 
-  'phone': (document.getElementById('Phone') ? document.getElementById('Phone').value : '')
-}
+            customFields: {
+              'name': name,
+              'company-name': company,
+              'phone': (document.getElementById('Phone') ? document.getElementById('Phone').value : '')
+            }
           }).then(function(result) {
-    console.log('Signup successful:', result);
-    var member = result.data.member;
-    window.isLoggedInUser = true;
-    window._zapierSentDirect = true;  // ADD THIS
-    showLoggedInState(member);
-    saveSiteToMember();
-    
-    // Send to Zapier BEFORE hiding the form
-    if (typeof window.sendToZapierDirect === 'function') {
-      window.sendToZapierDirect(email, name, phone, company);
-    }
-    
-    forceToPanel9();
-}).catch(function(error) {
+            console.log('Signup successful:', result);
+            var member = result.data.member;
+            window.isLoggedInUser = true;
+            window._zapierSentDirect = true;
+            showLoggedInState(member);
+            saveSiteToMember();
+
+            if (typeof window.sendToZapierDirect === 'function') {
+              window.sendToZapierDirect(email, name, phone, company);
+            }
+
+            forceToPanel9();
+          }).catch(function(error) {
             console.error('Signup error:', error);
             alert('Signup failed: ' + (error.message || 'Please try again'));
             if (submitBtn) {
@@ -838,31 +827,31 @@ function loadOldSiteScreenshot() {
         }, true);
         console.log('Signup form handler attached');
       }
-      
+
       var loginForm = document.querySelector('[data-ms-form="login"]');
       if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
-          
+
           var emailInput = loginForm.querySelector('input[type="email"], input[data-ms-member="email"]');
           var passwordInput = loginForm.querySelector('input[type="password"], input[data-ms-member="password"]');
           var email = emailInput ? emailInput.value : '';
           var password = passwordInput ? passwordInput.value : '';
-          
+
           if (!email || !password) {
             alert('Please enter email and password');
             return false;
           }
-          
+
           var submitBtn = loginForm.querySelector('button[type="submit"]');
           var originalText = submitBtn ? submitBtn.textContent : '';
           if (submitBtn) {
             submitBtn.textContent = 'LOGGING IN...';
             submitBtn.disabled = true;
           }
-          
+
           window.$memberstackDom.loginMemberEmailPassword({
             email: email,
             password: password
@@ -1350,7 +1339,6 @@ if (leadNumber) leadNumber.textContent = '$0';
   
   
 // INDUSTRY SELECTION - CLEAN VERSION
-  
 (function() {
   window.selectedIndustrySlug = null;
   
@@ -1384,19 +1372,67 @@ if (leadNumber) leadNumber.textContent = '$0';
       image: card.getAttribute('data-image'),
       template5k: card.getAttribute('data-template-5k'),
       template10k: card.getAttribute('data-template-10k'),
-      template50k: card.getAttribute('data-template-50k')
+      template50k: card.getAttribute('data-template-50k'),
+      styleCorporate: card.getAttribute('data-style-corporate'),
+      stylePlayful: card.getAttribute('data-style-playful'),
+      styleLuxury: card.getAttribute('data-style-luxury'),
+      styleMinimal: card.getAttribute('data-style-minimal'),
+      styleBold: card.getAttribute('data-style-bold')
     };
     
-    updateIndustryPreview();
     var nextBtn = document.querySelector('#right-panel-4 .next-btn');
     if (nextBtn) nextBtn.setAttribute('data-disabled', 'false');
     if (typeof playBuildSound === 'function') playBuildSound();
     
-   // AUTO-SWITCH TO NEW SITE TAB - SIMPLE
-setTimeout(function() {
-  var newSiteTab = document.getElementById('tabs-new-site');
-  if (newSiteTab) newSiteTab.click();
-}, 400);
+    updateIndustryPreview();
+    
+    // Random style AFTER preview updates so it overwrites
+    setTimeout(function() {
+      var styleCards = document.querySelectorAll('[data-style]');
+      if (styleCards.length > 0) {
+        styleCards.forEach(function(c) { c.classList.remove('selected'); });
+        var randomIndex = Math.floor(Math.random() * styleCards.length);
+        var picked = styleCards[randomIndex];
+        picked.classList.add('selected');
+        var style = picked.getAttribute('data-style');
+        window.selectedStyle = style;
+        var styleMap = {
+          'corporate': 'styleCorporate',
+          'playful': 'stylePlayful',
+          'luxury': 'styleLuxury',
+          'minimal': 'styleMinimal',
+          'bold': 'styleBold'
+        };
+        var fieldName = styleMap[style];
+        var newUrl = window.siteConfig.industry[fieldName];
+        if (newUrl) {
+          window.siteConfig.industry.template5k = newUrl;
+          
+          var previewImg = document.getElementById('template-5k');
+          if (previewImg) previewImg.src = newUrl;
+          
+          if (window.cart) window.cart.image = newUrl;
+          
+          var orderImg = document.getElementById('order-image');
+          if (orderImg) orderImg.src = newUrl;
+          
+          var cartImg = document.getElementById('cart-image');
+          if (cartImg) cartImg.src = newUrl;
+          var slide5k = document.getElementById('slide-5k');
+          
+          if (slide5k) {
+            var slideImg = slide5k.querySelector('img');
+            if (slideImg) slideImg.src = newUrl;
+          }
+        }
+      }
+    }, 100);
+    
+    // AUTO-SWITCH TO NEW SITE TAB
+    setTimeout(function() {
+      var newSiteTab = document.getElementById('tabs-new-site');
+      if (newSiteTab) newSiteTab.click();
+    }, 400);
     
   });
   
@@ -1422,25 +1458,55 @@ setTimeout(function() {
   }
   
 })();
-  
-  // STYLE SELECTION
-  document.querySelectorAll('.style-card').forEach(function(card) {
-    card.addEventListener('click', function() {
-      document.querySelectorAll('.style-card').forEach(function(c) { c.classList.remove('selected'); });
-      this.classList.add('selected');
-      window.siteConfig.style = {
-        slug: this.getAttribute('data-slug'),
-        fontClass: this.getAttribute('data-font-class'),
-        radius: this.getAttribute('data-radius'),
-        buttonRadius: this.getAttribute('data-button-radius'),
-        shadow: this.getAttribute('data-shadow')
-      };
-      updateStylePreview();
-      var nextBtn = document.querySelector('#right-panel-5 .next-btn');
-      if (nextBtn) nextBtn.setAttribute('data-disabled', 'false');
-      playBuildSound();
+
+// STYLE SELECTION
+(function() {
+  window.selectedStyle = null;
+  var styleMap = {
+    'corporate': 'styleCorporate',
+    'playful': 'stylePlayful',
+    'luxury': 'styleLuxury',
+    'minimal': 'styleMinimal',
+    'bold': 'styleBold'
+  };
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('[data-style]');
+    if (!card) return;
+    var style = card.getAttribute('data-style');
+    window.selectedStyle = style;
+
+    document.querySelectorAll('[data-style]').forEach(function(c) {
+      c.classList.remove('selected');
     });
+    card.classList.add('selected');
+
+    if (window.siteConfig && window.siteConfig.industry) {
+      var fieldName = styleMap[style];
+      var newTemplateUrl = window.siteConfig.industry[fieldName];
+      if (newTemplateUrl) {
+        window.siteConfig.industry.template5k = newTemplateUrl;
+        
+        var previewImg = document.getElementById('template-5k');
+        if (previewImg) previewImg.src = newTemplateUrl;
+
+        if (window.cart) window.cart.image = newTemplateUrl;
+
+        var orderImg = document.getElementById('order-image');
+        if (orderImg) orderImg.src = newTemplateUrl;
+
+        var cartImg = document.getElementById('cart-image');
+        if (cartImg) cartImg.src = newTemplateUrl;
+        var slide5k = document.getElementById('slide-5k');
+        
+        if (slide5k) {
+          var slideImg = slide5k.querySelector('img');
+          if (slideImg) slideImg.src = newTemplateUrl;
+        }
+      }
+    }
+    if (typeof playBuildSound === 'function') playBuildSound();
   });
+})();
   
   // COLOR SELECTION
   document.querySelectorAll('.color-card').forEach(function(card) {
@@ -1518,7 +1584,7 @@ setTimeout(function() {
     });
   });
 
-  // =========================
+// =========================
 // DOMAIN & LOGO UPSELLS
 // =========================
 
@@ -1526,13 +1592,10 @@ window.userSkippedUrl = false;
 window.originalUrlText = null;
 
 function initUpsellClicks() {
-
   return;
-  // ----- DOMAIN UPSELL (all slides) -----
   var allUrls = document.querySelectorAll('.new-site-url');
   
   allUrls.forEach(function(urlEl) {
-    // Store original text once
     if (!window.originalUrlText) {
       window.originalUrlText = urlEl.textContent;
     }
@@ -1543,14 +1606,12 @@ function initUpsellClicks() {
       var domainUpsell = document.getElementById('upsell-domain');
       var isAdding = !urlEl.classList.contains('added');
       
-      // Toggle cart upsell
       if (isAdding) {
         if (domainUpsell && !domainUpsell.classList.contains('active')) domainUpsell.click();
       } else {
         if (domainUpsell && domainUpsell.classList.contains('active')) domainUpsell.click();
       }
       
-      // Update ALL url elements across all slides
       allUrls.forEach(function(u) {
         if (isAdding) {
           u.classList.add('added');
@@ -1565,7 +1626,6 @@ function initUpsellClicks() {
     });
   });
   
-  // ----- LOGO UPSELL (all slides) -----
   var allLogos = document.querySelectorAll('.logo-upsell-anchor');
   
   allLogos.forEach(function(logoEl) {
@@ -1573,14 +1633,12 @@ function initUpsellClicks() {
       var brandUpsell = document.getElementById('upsell-brand');
       var isAdding = !logoEl.classList.contains('added');
       
-      // Toggle cart upsell
       if (isAdding) {
         if (brandUpsell && !brandUpsell.classList.contains('active')) brandUpsell.click();
       } else {
         if (brandUpsell && brandUpsell.classList.contains('active')) brandUpsell.click();
       }
       
-      // Update ALL logo elements across all slides
       allLogos.forEach(function(l) {
         if (isAdding) {
           l.classList.add('added');
@@ -1604,12 +1662,10 @@ function syncUpsellStates() {
   var allUrls = document.querySelectorAll('.new-site-url');
   var allLogos = document.querySelectorAll('.logo-upsell-anchor');
   
-  // Store original URL if not already stored
   if (!window.originalUrlText && allUrls.length > 0) {
     window.originalUrlText = allUrls[0].textContent;
   }
   
-  // Sync domain across all slides
   allUrls.forEach(function(urlEl) {
     if (urlEl.classList.contains('upsell-disabled')) return;
     
@@ -1622,7 +1678,6 @@ function syncUpsellStates() {
     }
   });
   
-  // Sync logo across all slides
   allLogos.forEach(function(logoEl) {
     if (brandUpsell && brandUpsell.classList.contains('active') && !logoEl.classList.contains('added')) {
       logoEl.classList.add('added');
@@ -1631,10 +1686,6 @@ function syncUpsellStates() {
     }
   });
 }
-
-// =========================
-// CONDITIONAL DOMAIN
-// =========================
 
 // =========================
 // CONDITIONAL DOMAIN - EVENT DRIVEN
@@ -1653,11 +1704,9 @@ function initConditionalDomainUpsell() {
     });
   }
   
-  check(); // Run once on init
-  // REMOVED: setInterval(check, 300);
+  check();
 }
 
-// Expose check function so you can call it when needed
 window.updateDomainUpsell = function() {
   var allUrls = document.querySelectorAll('.new-site-url');
   allUrls.forEach(function(urlEl) {
@@ -1671,5 +1720,4 @@ window.updateDomainUpsell = function() {
 
 initUpsellClicks();
 initConditionalDomainUpsell();
-// REMOVED: setInterval(syncUpsellStates, 300);
 });
