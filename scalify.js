@@ -1358,6 +1358,9 @@ if (leadNumber) leadNumber.textContent = '$0';
     
     updateIndustryPreview();
     
+    var styleSection = document.querySelector('.Style-Collections');
+    if (styleSection) styleSection.style.display = '';
+    
     // Random style AFTER preview updates so it overwrites
     setTimeout(function() {
       var styleCards = document.querySelectorAll('[data-style]');
