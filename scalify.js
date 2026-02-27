@@ -55,12 +55,10 @@ window.panelToStep || {
   
   if (savedImage) {
     window.cachedOldSiteImage = savedImage;
-    console.log('Loaded cached image from localStorage');
   }
   
   if (savedUrl) {
     window.scannedUrl = savedUrl;
-    console.log('Loaded scanned URL from localStorage:', savedUrl);
   }
 })();
 
@@ -293,9 +291,6 @@ function animateNumber(element, start, target) {
 
 // ==================== UPDATE PROGRESS ====================
 window.updateProgress = function(panelNumber, direction) {
-  console.log('====== UPDATE PROGRESS CALLED ======');
-  console.log('Panel Number:', panelNumber);
-  console.log('Direction:', direction);
   
   var totalSteps = 8;
   
@@ -318,18 +313,13 @@ window.updateProgress = function(panelNumber, direction) {
   var panelId = String(panelNumber);
   var currentStep = window.panelToStep[panelId];
   
-  console.log('Panel ID:', panelId);
-  console.log('Current Step from mapping:', currentStep);
   
   if (currentStep === undefined) {
     currentStep = Math.min(panelNumber - 1, totalSteps);
-    console.log('Using fallback step:', currentStep);
   }
   
   var fillPercentage = (currentStep / totalSteps) * 100;
   
-  console.log('Fill Percentage:', fillPercentage + '%');
-  console.log('====================================');
   
   var progressFill = document.querySelector('.progress-fill');
   if (progressFill) progressFill.style.width = fillPercentage + '%';
@@ -515,7 +505,6 @@ function restoreIndustrySelection() {
           card.classList.add('selected');
         }
       });
-      console.log('[Industry] Restored selection:', industry.slug);
     } catch (e) {}
   });
 }
@@ -719,7 +708,6 @@ function loadOldSiteScreenshot() {
     window.$memberstackDom.getCurrentMember().then(function(result) {
       var member = result.data;
       if (member) {
-        console.log('User already logged in:', member);
         window.isLoggedInUser = true;
 
         var panel1 = document.getElementById('panel-1');
@@ -780,8 +768,6 @@ function loadOldSiteScreenshot() {
           var company = companyInput ? companyInput.value : '';
           var phone = document.getElementById('Phone') ? document.getElementById('Phone').value : '';
 
-          console.log('Signup data:', { email: email, name: name, company: company });
-
           if (!email || !password) {
             alert('Please enter email and password');
             return false;
@@ -803,7 +789,6 @@ function loadOldSiteScreenshot() {
               'phone': (document.getElementById('Phone') ? document.getElementById('Phone').value : '')
             }
           }).then(function(result) {
-            console.log('Signup successful:', result);
             var member = result.data.member;
             window.isLoggedInUser = true;
             window._zapierSentDirect = true;
@@ -825,7 +810,6 @@ function loadOldSiteScreenshot() {
           });
           return false;
         }, true);
-        console.log('Signup form handler attached');
       }
 
       var loginForm = document.querySelector('[data-ms-form="login"]');
@@ -856,7 +840,6 @@ function loadOldSiteScreenshot() {
             email: email,
             password: password
           }).then(function(result) {
-            console.log('Login successful:', result);
             var member = result.data.member;
             window.isLoggedInUser = true;
             showLoggedInState(member);
@@ -872,7 +855,6 @@ function loadOldSiteScreenshot() {
           });
           return false;
         }, true);
-        console.log('Login form handler attached');
       }
     }, 1000);
   }
@@ -901,7 +883,6 @@ function loadOldSiteScreenshot() {
     var contractSigned = localStorage.getItem('scalify_contractSigned') === 'true';
     
     if (contractSigned) {
-      console.log('Contract already signed - going to panel 10');
       var panel10 = document.getElementById('right-panel-10');
       if (panel10) {
         panel10.classList.add('active');
@@ -910,7 +891,6 @@ function loadOldSiteScreenshot() {
       }
       currentPanelNumber = 10;
     } else {
-      console.log('Contract not signed - going to panel 9');
       var panel9 = document.getElementById('right-panel-9');
       if (panel9) {
         panel9.classList.add('active');
@@ -923,7 +903,6 @@ function loadOldSiteScreenshot() {
     setTimeout(function() {
       var newSiteTab = document.getElementById('tabs-new-site');
       if (newSiteTab) {
-        console.log('Switching to new site tab');
         newSiteTab.click();
       }
     }, 100);
@@ -970,11 +949,9 @@ function loadOldSiteScreenshot() {
       if (pipImg && window.screenshotUrl) {
         pipImg.src = window.screenshotUrl;
         pipImg.style.opacity = '1';
-        console.log('PIP image set to:', window.screenshotUrl);
       } else if (pipImg && window.cachedOldSiteImage) {
         pipImg.src = window.cachedOldSiteImage;
         pipImg.style.opacity = '1';
-        console.log('PIP image set from cache');
       }
     }, 500);
   }
@@ -1022,9 +999,7 @@ function loadOldSiteScreenshot() {
       return;
     }
     try {
-      var config = JSON.parse(savedSite);
-      console.log('Loading saved site config:', config);
-      
+      var config = JSON.parse(savedSite);      
       window.scannedUrl = config.scannedUrl || '';
       if (!window.siteConfig) window.siteConfig = { industry: null, style: null, colors: null };
       window.siteConfig.industry = config.industry;
@@ -1043,7 +1018,6 @@ function loadOldSiteScreenshot() {
       }
       
       function applyPreview() {
-        console.log('Applying saved preview...');
         if (window.siteConfig.industry) {
           var headline = document.getElementById('preview-headline');
           var description = document.getElementById('preview-description');
@@ -1237,9 +1211,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       displayUrl = 'https://www.your-new-website.com';
     }
-    
-    console.log('[URL Updater] displayUrl:', displayUrl);
-    
+        
 var newSiteUrlById = document.getElementById('new-site-url-new');
     if (newSiteUrlById) {
       newSiteUrlById.textContent = displayUrl;
