@@ -449,6 +449,13 @@ function updateIndustryPreview() {
   preloadAndSet(img10k, industry.template10k);
   preloadAndSet(img50k, industry.template50k);
 
+  var styleSection = document.querySelector('.Style-Collections');
+if (styleSection) {
+  styleSection.style.opacity = '1';
+  styleSection.style.pointerEvents = '';
+  styleSection.style.maxHeight = '75px';
+}
+  
   // Persist for logged-in users only
   if (window.$memberstackDom) {
     window.$memberstackDom.getCurrentMember().then(function(result) {
