@@ -429,7 +429,7 @@ function updateIndustryPreview() {
 
   // Show style cards
 var styleSection = document.getElementById('Style-Collections');
-if (styleSection) styleSection.style.setProperty('display', 'flex', 'important');
+if (styleSection) styleSection.classList.add('visible');
   
   var industry = window.siteConfig.industry;
   if (!industry) return;
