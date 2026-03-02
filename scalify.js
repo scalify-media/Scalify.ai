@@ -450,11 +450,7 @@ function updateIndustryPreview() {
   preloadAndSet(img50k, industry.template50k);
 
   var styleSection = document.querySelector('.Style-Collections');
-if (styleSection) {
-  styleSection.style.opacity = '1';
-  styleSection.style.pointerEvents = '';
-  styleSection.style.maxHeight = '75px';
-}
+if (styleSection) styleSection.style.setProperty('display', 'flex', 'important');
   
   // Persist for logged-in users only
   if (window.$memberstackDom) {
