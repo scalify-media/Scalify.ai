@@ -449,7 +449,7 @@ function updateIndustryPreview() {
   preloadAndSet(img10k, industry.template10k);
   preloadAndSet(img50k, industry.template50k);
 
-  var styleSection = document.querySelector('.Style-Collections');
+  var styleSection = document.getElementById('Style-Collections');
 if (styleSection) styleSection.style.setProperty('display', 'flex', 'important');
   
   // Persist for logged-in users only
