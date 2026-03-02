@@ -426,6 +426,11 @@ function preloadAndSet(imgElement, newSrc) {
 }
 
 function updateIndustryPreview() {
+
+  // Show style cards
+var styleSection = document.getElementById('Style-Collections');
+if (styleSection) styleSection.style.setProperty('display', 'flex', 'important');
+  
   var industry = window.siteConfig.industry;
   if (!industry) return;
 
@@ -448,9 +453,6 @@ function updateIndustryPreview() {
   preloadAndSet(img5k, industry.template5k);
   preloadAndSet(img10k, industry.template10k);
   preloadAndSet(img50k, industry.template50k);
-
-  var styleSection = document.getElementById('Style-Collections');
-if (styleSection) styleSection.style.setProperty('display', 'flex', 'important');
   
   // Persist for logged-in users only
   if (window.$memberstackDom) {
