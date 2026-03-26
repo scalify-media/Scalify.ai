@@ -885,25 +885,13 @@ function loadOldSiteScreenshot() {
       p.classList.remove('active');
     });
     
-    var contractSigned = localStorage.getItem('scalify_contractSigned') === 'true';
-    
-    if (contractSigned) {
-      var panel10 = document.getElementById('right-panel-10');
-      if (panel10) {
-        panel10.classList.add('active');
-        panel10.style.opacity = '1';
-        panel10.style.transform = 'translateY(0)';
-      }
-      currentPanelNumber = 10;
-    } else {
-      var panel9 = document.getElementById('right-panel-9');
-      if (panel9) {
-        panel9.classList.add('active');
-        panel9.style.opacity = '1';
-        panel9.style.transform = 'translateY(0)';
-      }
-      currentPanelNumber = 9;
+    var panel10 = document.getElementById('right-panel-10');
+    if (panel10) {
+      panel10.classList.add('active');
+      panel10.style.opacity = '1';
+      panel10.style.transform = 'translateY(0)';
     }
+    currentPanelNumber = 10;
     
     setTimeout(function() {
       var newSiteTab = document.getElementById('tabs-new-site');
@@ -936,12 +924,12 @@ function loadOldSiteScreenshot() {
     
     // Update progress
     if (typeof window.updateProgress === 'function') {
-      window.updateProgress(currentPanelNumber, 'forward');
+      window.updateProgress(10, 'forward');
     } else {
       var progressFill = document.querySelector('.progress-fill');
-      if (progressFill) progressFill.style.width = contractSigned ? '100%' : '87.5%';
+      if (progressFill) progressFill.style.width = '100%';
       var progressNumber = document.querySelector('.progress-number');
-      if (progressNumber) progressNumber.textContent = contractSigned ? '9/9' : '8/9';
+      if (progressNumber) progressNumber.textContent = '9/9';
     }
     
     // Update leads
